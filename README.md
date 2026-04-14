@@ -10,7 +10,7 @@ Users upload proof (images/videos) of cleaning activities, and the system uses A
 ## 🚨 Problem Statement
 
 Waste accumulation in public spaces is a major issue.<br>
-Even though people notice it, very few take action because:
+Even though people notice it, very few take action because: <br>
 
 * People lack motivation to take initiative
 * No system exists to verify or reward cleaning efforts
@@ -51,7 +51,7 @@ Firebase
 Render
 
 # APIs & Libraries
-Gemini AI API
+Gemini AI API <br>
 Leaflet.js (maps & location visualization)
 
 ## 🧠 How It Works
@@ -62,7 +62,7 @@ Users begin by entering basic details such as name and city, enabling localized 
 
 2. Dashboard Overview
 
-After logging in, users access a dashboard that includes:
+After logging in, users access a dashboard that includes: <br>
  * User level (based on contribution)
  * Live feed of activities
  * Interactive map showing garbage hotspots
@@ -74,7 +74,7 @@ After logging in, users access a dashboard that includes:
 
 4. Cleaning & Proof Submission
 
-Users document the cleaning process by uploading:
+Users document the cleaning process by uploading: <br>
 📸 Before image (dirty area) <br>
 🎥 Video of waste disposal <br>
 📸 After image (cleaned area) <br>
@@ -101,15 +101,17 @@ If users cannot clean: <br>
 * Encourages collaborative action
 
 8. Event Contribution & Completion
+   
 * Participants upload before/after proof with event ID
 * After verification: <br>
 ✅ Event is marked complete <br>
 🏅 Rewards and certificates are issued <br>
 
 9. Leaderboard & Rewards
+    
 Users can track:<br>
-🏆 Ranking
-💰 Points<br><br>
+🏆 Ranking <br>
+💰 Points<br>
 🎁 Reward eligibility<br>
 
 
