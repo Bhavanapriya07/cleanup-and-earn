@@ -173,7 +173,7 @@ def route_analyze():
 
     result = analyze_cleanup(before_file.read(), after_file.read())
 
-    if result["verified"]:
+    if result["verified"] and result["points"] > 0:
         total = add_points(result["points"])
         conn  = get_db()
         try:
