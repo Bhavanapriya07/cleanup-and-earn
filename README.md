@@ -9,7 +9,7 @@ Users upload proof (images/videos) of cleaning activities, and the system uses A
 
 ## 🚨 Problem Statement
 
-Waste accumulation in public spaces is a major issue.
+Waste accumulation in public spaces is a major issue.<br>
 Even though people notice it, very few take action because:
 
 * People lack motivation to take initiative
@@ -26,7 +26,7 @@ CleanCred solves this by:
 
 ## ⚙️ Features
 
-📸 Upload image/video proof of cleaning
+📸 Upload image/video proof of cleaning<br>
 🤖 AI-based validation (Gemini API)
 🗺️ Location tagging using maps (Leaflet.js)
 💰 Credit-based reward system
