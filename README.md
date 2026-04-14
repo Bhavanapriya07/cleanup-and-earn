@@ -26,15 +26,13 @@ CleanCred solves this by:
 
 ## ⚙️ Features
 
-📸 Upload image/video proof of cleaning<br>
-🤖 AI-based validation (Gemini API)
-🗺️ Location tagging using maps (Leaflet.js)
-💰 Credit-based reward system
-🧑‍🤝‍🧑 Community platform for social impact
-🚨 Garbage hotspot reporting system
-🏆 Leaderboard (user ranking based on contributions)
-🛠️ Tech Stack
-
+📸 Upload image/video proof of cleaning <br>
+🤖 AI-based validation (Gemini API) <br>
+🗺️ Location tagging using maps (Leaflet.js) <br>
+💰 Credit-based reward system <br>
+🧑‍🤝‍🧑 Community platform for social impact <br>
+🚨 Garbage hotspot reporting system <br>
+🏆 Leaderboard (user ranking based on contributions) <br>
 
 ## 🛠️ Tech Stack
 
@@ -77,21 +75,21 @@ After logging in, users access a dashboard that includes:
 4. Cleaning & Proof Submission
 
 Users document the cleaning process by uploading:
-📸 Before image (dirty area)
-🎥 Video of waste disposal
-📸 After image (cleaned area)
+📸 Before image (dirty area) <br>
+🎥 Video of waste disposal <br>
+📸 After image (cleaned area) <br>
 
 5. AI-Based Verification & Reward System
    
-Gemini AI evaluates:
+Gemini AI evaluates:<br>
 * Authenticity of cleaning
 * Type of waste
-* Level of effort
+* Level of effort <br>
 Points are awarded dynamically based on impact
 
 6. Reporting Garbage Hotspots
 
-If users cannot clean:
+If users cannot clean: <br>
 * Upload the image of the place
 * They can report the location manually Or use auto-detect for location tagging
 * Reported areas appear on the map
@@ -104,15 +102,15 @@ If users cannot clean:
 
 8. Event Contribution & Completion
 * Participants upload before/after proof with event ID
-* After verification:
-✅ Event is marked complete
-🏅 Rewards and certificates are issued
+* After verification: <br>
+✅ Event is marked complete <br>
+🏅 Rewards and certificates are issued <br>
 
 9. Leaderboard & Rewards
-Users can track:
+Users can track:<br>
 🏆 Ranking
-💰 Points
-🎁 Reward eligibility
+💰 Points<br><br>
+🎁 Reward eligibility<br>
 
 
 ## 🚀 Installation & Setup
