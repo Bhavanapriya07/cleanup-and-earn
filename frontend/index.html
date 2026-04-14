@@ -1,0 +1,1062 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CleanCred</title>
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#4cff91" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+
+    body{
+      font-family:'Segoe UI',sans-serif;
+      background:#0f1f0f;
+      color:#e0ffe0;
+      min-height:100vh;
+      overflow-x:hidden;
+    }
+
+    /* ── SCREENS ── */
+    .screen{display:none;min-height:100vh}
+    .screen.active{display:flex;flex-direction:column}
+
+    /* ── ONBOARDING ── */
+    #screen-onboarding{
+      align-items:center;justify-content:center;
+      padding:40px 24px;
+      background:radial-gradient(ellipse at top,#1a3d1a 0%,#0f1f0f 70%);
+      text-align:center;
+    }
+    .onboard-logo{font-size:5rem;margin-bottom:16px;animation:float 3s ease-in-out infinite}
+    @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+    .onboard-title{font-size:3rem;font-weight:800;color:#4cff91;letter-spacing:3px;margin-bottom:8px}
+    .onboard-tagline{color:#7db87d;font-size:1rem;margin-bottom:48px}
+
+    .form-group{width:100%;max-width:360px;margin-bottom:16px;text-align:left}
+    .form-group label{display:block;font-size:.78rem;text-transform:uppercase;letter-spacing:1px;color:#7db87d;margin-bottom:8px}
+    .form-group input{
+      width:100%;padding:14px 18px;
+      background:#1a2e1a;border:1px solid #2e4d2e;border-radius:12px;
+      color:#e0ffe0;font-size:1rem;outline:none;transition:border-color .2s;
+    }
+    .form-group input:focus{border-color:#4cff91}
+    .form-group input::placeholder{color:#3a5a3a}
+
+    .start-btn{
+      width:100%;max-width:360px;padding:16px;
+      background:#4cff91;color:#0f1f0f;font-size:1.1rem;font-weight:700;
+      border:none;border-radius:12px;cursor:pointer;margin-top:8px;
+      letter-spacing:1px;transition:transform .15s,background .2s;
+    }
+    .start-btn:hover{background:#2ecc71;transform:scale(1.02)}
+
+    .onboard-features{display:flex;gap:20px;margin-top:40px;flex-wrap:wrap;justify-content:center;max-width:360px}
+    .feature-pill{background:#1a2e1a;border:1px solid #2e4d2e;border-radius:50px;padding:8px 16px;font-size:.8rem;color:#7db87d}
+
+    /* ── TOPBAR ── */
+    .topbar{display:flex;align-items:center;justify-content:space-between;padding:20px 20px 10px;background:#0f1f0f}
+    .topbar-left h2{font-size:1.1rem;color:#4cff91;font-weight:700}
+    .topbar-left p{font-size:.78rem;color:#7db87d;margin-top:2px}
+    .topbar-right{
+      width:42px;height:42px;background:#1a2e1a;border:1px solid #2e4d2e;border-radius:50%;
+      display:flex;align-items:center;justify-content:center;font-size:1.3rem;cursor:pointer;
+    }
+
+    /* ── POINTS HERO ── */
+    .points-hero{
+      margin:16px 20px;
+      background:linear-gradient(135deg,#1a3d1a,#0f2a0f);
+      border:1px solid #4cff91;border-radius:20px;padding:24px;
+      display:flex;align-items:center;justify-content:space-between;
+    }
+    .points-hero-left p{font-size:.75rem;text-transform:uppercase;letter-spacing:1px;color:#7db87d;margin-bottom:6px}
+    .points-hero-left .big-num{font-size:3rem;font-weight:800;color:#4cff91;line-height:1}
+    .points-hero-left .rank-text{font-size:.8rem;color:#b0deb0;margin-top:6px}
+    .streak-circle{
+      width:72px;height:72px;border-radius:50%;background:#0f1f0f;border:3px solid #4cff91;
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+    }
+    .streak-circle .streak-num{font-size:1.5rem;font-weight:800;color:#4cff91;line-height:1}
+    .streak-circle .streak-label{font-size:.55rem;color:#7db87d;text-transform:uppercase;letter-spacing:.5px}
+
+    /* ── STATS ROW ── */
+    .stats-row{display:flex;gap:10px;margin:0 20px 16px}
+    .stat-mini{flex:1;background:#1a2e1a;border:1px solid #2e4d2e;border-radius:14px;padding:14px 10px;text-align:center}
+    .stat-mini .s-num{font-size:1.3rem;font-weight:800;color:#4cff91}
+    .stat-mini .s-label{font-size:.65rem;color:#7db87d;margin-top:3px;text-transform:uppercase;letter-spacing:.5px}
+
+    /* ── SECTION TITLE ── */
+    .section-title{font-size:.78rem;text-transform:uppercase;letter-spacing:1px;color:#7db87d;margin:0 20px 10px}
+
+    /* ── MAP ── */
+    .map-card{margin:0 20px 16px;border-radius:16px;overflow:hidden;border:1px solid #2e4d2e}
+    #dashboard-map{height:200px;width:100%}
+    .map-legend{display:flex;gap:14px;padding:10px 14px;background:#1a2e1a;flex-wrap:wrap}
+    .legend-item{display:flex;align-items:center;gap:6px;font-size:.72rem;color:#7db87d}
+    .legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+
+    /* ── FAB ── */
+    .cleanup-fab{
+      margin:0 20px 16px;padding:18px;background:#4cff91;color:#0f1f0f;
+      font-size:1.05rem;font-weight:700;border:none;border-radius:16px;cursor:pointer;
+      width:calc(100% - 40px);letter-spacing:1px;transition:transform .15s,background .2s;
+      display:flex;align-items:center;justify-content:center;gap:10px;
+    }
+    .cleanup-fab:hover{background:#2ecc71;transform:scale(1.01)}
+
+    /* ── FEED ── */
+    .feed-entry{
+      display:flex;align-items:center;gap:12px;
+      margin:0 20px 10px;background:#1a2e1a;border:1px solid #2e4d2e;
+      border-radius:14px;padding:12px 16px;
+    }
+    .feed-icon{font-size:1.4rem}
+    .feed-info{flex:1}
+    .feed-info .feed-name{font-weight:600;font-size:.88rem}
+    .feed-info .feed-detail{font-size:.72rem;color:#7db87d;margin-top:2px}
+    .feed-pts{font-weight:700;color:#4cff91;font-size:.88rem}
+
+    /* ── BOTTOM NAV ── */
+    .bottom-nav{
+      position:fixed;bottom:0;left:0;right:0;
+      background:#1a2e1a;border-top:1px solid #2e4d2e;
+      display:flex;z-index:1000;
+    }
+    .nav-item{
+      flex:1;display:flex;flex-direction:column;align-items:center;
+      padding:12px 8px;cursor:pointer;transition:color .2s;
+      text-decoration:none;color:#3a5a3a;font-size:.65rem;
+      text-transform:uppercase;letter-spacing:.5px;gap:4px;
+      border:none;background:none;
+    }
+    .nav-item .nav-icon{font-size:1.4rem}
+    .nav-item.active{color:#4cff91}
+    .nav-item:hover{color:#7db87d}
+    .bottom-spacer{height:80px}
+
+    /* ── CARDS / UPLOAD ── */
+    #screen-upload,#screen-report,#screen-leaderboard,#screen-community{
+      flex-direction:column;padding:24px 20px;padding-bottom:100px;
+    }
+    .screen-header{display:flex;align-items:center;gap:12px;margin-bottom:28px}
+    .screen-header h2{font-size:1.4rem;font-weight:700;color:#4cff91}
+
+    .card{background:#1a2e1a;border:1px solid #2e4d2e;border-radius:16px;padding:20px;margin-bottom:16px}
+    .card h3{font-size:.78rem;text-transform:uppercase;letter-spacing:1px;color:#7db87d;margin-bottom:14px}
+
+    .upload-box{
+      border:2px dashed #2e4d2e;border-radius:12px;padding:24px;
+      text-align:center;cursor:pointer;transition:border-color .2s;position:relative;
+    }
+    .upload-box:hover{border-color:#4cff91}
+    .upload-box input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+    .upload-icon{font-size:2rem;margin-bottom:8px}
+    .upload-box p{color:#7db87d;font-size:.82rem}
+
+    .preview-img,.preview-video{width:100%;border-radius:10px;margin-top:12px;display:none}
+
+    .submit-btn{
+      width:100%;padding:16px;background:#4cff91;color:#0f1f0f;
+      font-size:1rem;font-weight:700;border:none;border-radius:12px;
+      cursor:pointer;letter-spacing:1px;transition:background .2s;margin-top:8px;
+    }
+    .submit-btn:hover{background:#2ecc71}
+    .submit-btn:disabled{background:#2e4d2e;color:#3a5a3a;cursor:not-allowed}
+
+    .loader{display:none;color:#4cff91;text-align:center;margin-top:14px;font-size:.9rem}
+
+    #result-box{
+      display:none;background:#1a3d1a;border:1px solid #4cff91;
+      border-radius:16px;padding:24px;margin-top:16px;text-align:center;
+    }
+    #result-box h3{color:#4cff91;margin-bottom:10px;font-size:1.1rem}
+    #result-box p{color:#b0deb0;font-size:.88rem;line-height:1.6}
+
+    .points-badge{
+      display:inline-block;background:#4cff91;color:#0f1f0f;
+      font-size:1.6rem;font-weight:800;padding:10px 28px;border-radius:50px;margin:12px 0;
+    }
+
+    /* ── LEADERBOARD ── */
+    .my-points-card{
+      background:linear-gradient(135deg,#1a3d1a,#0f2a0f);border:1px solid #4cff91;
+      border-radius:20px;padding:24px;text-align:center;margin-bottom:20px;
+    }
+    .my-points-card p{color:#7db87d;font-size:.78rem;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+    .big-points{font-size:3rem;font-weight:800;color:#4cff91}
+    .rank-label{color:#b0deb0;font-size:.82rem;margin-top:8px}
+
+    .lb-entry{
+      display:flex;align-items:center;background:#1a2e1a;border:1px solid #2e4d2e;
+      border-radius:14px;padding:14px 16px;margin-bottom:10px;gap:14px;
+    }
+    .lb-entry.you{border-color:#4cff91;background:#1a3d1a}
+    .lb-rank{font-size:1.2rem;font-weight:800;width:28px;text-align:center;flex-shrink:0}
+    .lb-rank.gold{color:#ffd700}.lb-rank.silver{color:#c0c0c0}.lb-rank.bronze{color:#cd7f32}.lb-rank.normal{color:#4cff91}
+    .lb-avatar{width:40px;height:40px;border-radius:50%;background:#2e4d2e;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0}
+    .lb-info{flex:1}
+    .lb-name{font-weight:600;font-size:.9rem}
+    .lb-sub{font-size:.72rem;color:#7db87d;margin-top:2px}
+    .lb-pts{font-weight:800;color:#4cff91;font-size:1rem}
+    .you-tag{background:#4cff91;color:#0f1f0f;font-size:.6rem;font-weight:700;padding:2px 7px;border-radius:20px;margin-left:6px;vertical-align:middle}
+
+    .reward-card{display:flex;align-items:center;gap:14px;background:#1a2e1a;border:1px solid #2e4d2e;border-radius:14px;padding:14px 16px;margin-bottom:10px}
+    .reward-icon{font-size:1.8rem}
+    .reward-info{flex:1}
+    .reward-name{font-weight:600;font-size:.9rem}
+    .reward-cost{font-size:.72rem;color:#7db87d;margin-top:2px}
+    .redeem-btn{
+      padding:8px 16px;border-radius:50px;border:1px solid #4cff91;
+      background:transparent;color:#4cff91;font-size:.78rem;font-weight:600;
+      cursor:pointer;transition:all .2s;white-space:nowrap;
+    }
+    .redeem-btn:hover:not(:disabled){background:#4cff91;color:#0f1f0f}
+    .redeem-btn:disabled{border-color:#2e4d2e;color:#3a5a3a;cursor:not-allowed}
+
+    /* ── PULSE ── */
+    .pulse-dot{
+      display:inline-block;width:7px;height:7px;background:#4cff91;
+      border-radius:50%;margin-right:6px;animation:pulse 1.5s infinite;
+    }
+    @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.5)}}
+
+    /* ── LEAFLET DARK THEME ── */
+    .leaflet-popup-content-wrapper{background:#1a2e1a!important;border:1px solid #4cff91!important;border-radius:12px!important;color:#e0ffe0!important}
+    .leaflet-popup-tip{background:#1a2e1a!important}
+    .leaflet-popup-close-button{color:#4cff91!important}
+    .popup-title{font-weight:700;color:#4cff91;font-size:.88rem;margin-bottom:4px}
+    .popup-detail{font-size:.75rem;color:#b0deb0;line-height:1.5}
+  </style>
+</head>
+<body>
+
+<!-- ════════════════════════════════
+     SCREEN 1 — ONBOARDING
+════════════════════════════════ -->
+<div id="screen-onboarding" class="screen active">
+  <div class="onboard-logo">🌿</div>
+  <div class="onboard-title">CleanCred</div>
+  <p class="onboard-tagline">Clean it. Prove it. Earn it.</p>
+
+  <div class="form-group">
+    <label>Your Name</label>
+    <input type="text" id="input-name" placeholder="e.g. Bhavana" />
+  </div>
+  <div class="form-group">
+    <label>Your City</label>
+    <input type="text" id="input-city" placeholder="e.g. Palakkad" />
+  </div>
+
+  <button class="start-btn" onclick="startApp()">🚀 Start Cleaning</button>
+
+  <div class="onboard-features">
+    <span class="feature-pill">🤖 AI Verified</span>
+    <span class="feature-pill">🏆 Earn Rewards</span>
+    <span class="feature-pill">🗺️ Live Map</span>
+    <span class="feature-pill">♻️ Real Impact</span>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════
+     SCREEN 2 — DASHBOARD
+════════════════════════════════ -->
+<div id="screen-dashboard" class="screen">
+  <div class="topbar">
+    <div class="topbar-left">
+      <h2>Hey, <span id="dash-name">there</span> 👋</h2>
+      <p id="dash-city">📍 Loading...</p>
+    </div>
+    <div class="topbar-right">🌿</div>
+  </div>
+
+  <div class="points-hero">
+    <div class="points-hero-left">
+      <p>Your Points</p>
+      <div class="big-num" id="hero-points">0</div>
+      <div class="rank-text" id="hero-rank">Start cleaning to earn!</div>
+    </div>
+    <div class="points-hero-right">
+      <div class="streak-circle">
+        <div class="streak-num" id="streak-num">0</div>
+        <div class="streak-label">Streak</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-mini"><div class="s-num" id="stat-cleanups">0</div><div class="s-label">Cleanups</div></div>
+    <div class="stat-mini"><div class="s-num">24kg</div><div class="s-label">Removed</div></div>
+    <div class="stat-mini"><div class="s-num">3</div><div class="s-label">Zones</div></div>
+  </div>
+
+  <div class="section-title">🗺️ Nearby Hotspots</div>
+  <div class="map-card">
+    <div id="dashboard-map"></div>
+    <div class="map-legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#ff4444"></div>Dirty</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#4cff91"></div>Cleaned</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#ffaa00"></div>Needs Help</div>
+    </div>
+  </div>
+
+  <button class="cleanup-fab" onclick="showScreen('upload')">📸 Submit a Cleanup</button>
+
+  <div class="section-title"><span class="pulse-dot"></span>Live Feed</div>
+  <div id="live-feed-list">
+    <div style="color:#3a5a3a;font-size:.82rem;text-align:center;padding:20px;">Loading activity...</div>
+  </div>
+
+  <div class="bottom-spacer"></div>
+  <nav class="bottom-nav">
+    <button class="nav-item active" onclick="showScreen('dashboard')"><span class="nav-icon">🏠</span>Home</button>
+    <button class="nav-item" onclick="showScreen('upload')"><span class="nav-icon">📸</span>Upload</button>
+    <button class="nav-item" onclick="showScreen('report')"><span class="nav-icon">🚨</span>Report</button>
+    <button class="nav-item" onclick="showScreen('community')"><span class="nav-icon">👥</span>Events</button>
+    <button class="nav-item" onclick="showScreen('leaderboard')"><span class="nav-icon">🏆</span>Ranks</button>
+  </nav>
+</div>
+
+
+<!-- ════════════════════════════════
+     SCREEN 3 — UPLOAD
+════════════════════════════════ -->
+<div id="screen-upload" class="screen">
+  <div class="screen-header">
+    <span style="font-size:1.5rem;cursor:pointer" onclick="showScreen('dashboard')">←</span>
+    <h2>Submit Cleanup</h2>
+  </div>
+
+  <div class="card">
+    <h3>📸 Before — Waste Photo</h3>
+    <div class="upload-box">
+      <div class="upload-icon">🗑️</div><p>Tap to upload waste photo</p>
+      <input type="file" accept="image/*" id="before-input" />
+    </div>
+    <img id="before-preview" class="preview-img" />
+  </div>
+
+  <div class="card">
+    <h3>✅ After — Cleaned Photo</h3>
+    <div class="upload-box">
+      <div class="upload-icon">✨</div><p>Tap to upload after photo</p>
+      <input type="file" accept="image/*" id="after-input" />
+    </div>
+    <img id="after-preview" class="preview-img" />
+  </div>
+
+  <div class="card">
+    <h3>🎥 Disposal Video</h3>
+    <div class="upload-box">
+      <div class="upload-icon">📹</div><p>Upload short disposal video</p>
+      <input type="file" accept="video/*" id="video-input" />
+    </div>
+    <video id="video-preview" class="preview-video" controls></video>
+  </div>
+
+  <button class="submit-btn" id="submit-btn" disabled>🚀 Verify & Earn Points</button>
+  <div class="loader" id="loader">⏳ AI is analyzing your cleanup...</div>
+
+  <div id="result-box">
+    <h3>🎉 Cleanup Verified!</h3>
+    <p id="waste-type"></p>
+    <div class="points-badge" id="points-display">+0 pts</div>
+    <p id="impact-text"></p>
+    <button class="submit-btn" style="margin-top:16px" onclick="showScreen('dashboard')">← Back to Dashboard</button>
+  </div>
+
+  <div class="bottom-spacer"></div>
+  <nav class="bottom-nav">
+    <button class="nav-item" onclick="showScreen('dashboard')"><span class="nav-icon">🏠</span>Home</button>
+    <button class="nav-item active" onclick="showScreen('upload')"><span class="nav-icon">📸</span>Upload</button>
+    <button class="nav-item" onclick="showScreen('report')"><span class="nav-icon">🚨</span>Report</button>
+    <button class="nav-item" onclick="showScreen('community')"><span class="nav-icon">👥</span>Events</button>
+    <button class="nav-item" onclick="showScreen('leaderboard')"><span class="nav-icon">🏆</span>Ranks</button>
+  </nav>
+</div>
+
+
+<!-- ════════════════════════════════
+     SCREEN 4 — REPORT
+════════════════════════════════ -->
+<div id="screen-report" class="screen">
+  <div class="screen-header">
+    <span style="font-size:1.5rem;cursor:pointer" onclick="showScreen('dashboard')">←</span>
+    <h2>🚨 Report Waste</h2>
+  </div>
+
+  <div style="background:#2a1a1a;border:1px solid #ff4444;border-radius:14px;padding:14px 16px;margin-bottom:16px;font-size:.85rem;color:#ffaaaa;">
+    ⚠️ Spot too much waste? Report it and earn points. Your report helps the community prioritize cleanups.
+  </div>
+
+  <div class="card">
+    <h3>📸 Photo of Waste</h3>
+    <div class="upload-box">
+      <div class="upload-icon">🗑️</div><p>Tap to upload waste photo</p>
+      <input type="file" accept="image/*" id="report-photo-input" />
+    </div>
+    <img id="report-photo-preview" class="preview-img" />
+  </div>
+
+  <div class="card">
+    <h3>📍 Location Details</h3>
+    <div style="margin-bottom:12px">
+      <input type="text" id="report-location" placeholder="e.g. Near Palakkad Bus Stand"
+        style="width:100%;padding:12px 16px;background:#0f1f0f;border:1px solid #2e4d2e;border-radius:10px;color:#e0ffe0;font-size:.9rem;outline:none" />
+    </div>
+    <button onclick="getLocation()"
+      style="width:100%;padding:12px;background:transparent;border:1px solid #4cff91;border-radius:10px;color:#4cff91;font-size:.85rem;cursor:pointer">
+      📡 Auto-detect My Location
+    </button>
+    <p id="location-status" style="font-size:.75rem;color:#7db87d;margin-top:8px"></p>
+  </div>
+
+  <button class="submit-btn" id="report-submit-btn" disabled onclick="submitReport()">🚨 Submit Report</button>
+  <div class="loader" id="report-loader">⏳ AI is assessing the waste...</div>
+
+  <div id="report-result" style="display:none;background:#2a1a1a;border:1px solid #4cff91;border-radius:16px;padding:24px;margin-top:16px;text-align:center">
+    <h3 style="color:#4cff91;margin-bottom:10px">✅ Report Submitted!</h3>
+    <p id="report-severity" style="font-weight:700;font-size:1rem;margin-bottom:6px"></p>
+    <p id="report-waste" style="color:#b0deb0;font-size:.85rem;margin-bottom:12px"></p>
+    <div class="points-badge" id="report-points">+0 pts</div>
+    <p id="report-message" style="color:#b0deb0;font-size:.85rem;margin-top:10px"></p>
+    <button class="submit-btn" style="margin-top:16px" onclick="showScreen('dashboard')">← Back to Dashboard</button>
+  </div>
+
+  <div class="bottom-spacer"></div>
+  <nav class="bottom-nav">
+    <button class="nav-item" onclick="showScreen('dashboard')"><span class="nav-icon">🏠</span>Home</button>
+    <button class="nav-item" onclick="showScreen('upload')"><span class="nav-icon">📸</span>Upload</button>
+    <button class="nav-item active" onclick="showScreen('report')"><span class="nav-icon">🚨</span>Report</button>
+    <button class="nav-item" onclick="showScreen('community')"><span class="nav-icon">👥</span>Events</button>
+    <button class="nav-item" onclick="showScreen('leaderboard')"><span class="nav-icon">🏆</span>Ranks</button>
+  </nav>
+</div>
+
+
+<!-- ════════════════════════════════
+     SCREEN 5 — COMMUNITY
+════════════════════════════════ -->
+<div id="screen-community" class="screen">
+  <div class="screen-header">
+    <span style="font-size:1.5rem;cursor:pointer" onclick="showScreen('dashboard')">←</span>
+    <h2>👥 Community Cleanups</h2>
+  </div>
+
+  <div style="display:flex;gap:10px;margin-bottom:20px">
+    <button id="tab-events" onclick="switchTab('events')"
+      style="flex:1;padding:10px;border-radius:10px;border:1px solid #4cff91;background:#4cff91;color:#0f1f0f;font-weight:700;cursor:pointer;font-size:.85rem">
+      📅 Upcoming
+    </button>
+    <button id="tab-create" onclick="switchTab('create')"
+      style="flex:1;padding:10px;border-radius:10px;border:1px solid #2e4d2e;background:transparent;color:#7db87d;font-weight:700;cursor:pointer;font-size:.85rem">
+      ➕ Create
+    </button>
+    <button id="tab-complete" onclick="switchTab('complete')"
+      style="flex:1;padding:10px;border-radius:10px;border:1px solid #2e4d2e;background:transparent;color:#7db87d;font-weight:700;cursor:pointer;font-size:.85rem">
+      🏅 Complete
+    </button>
+  </div>
+
+  <div id="panel-events">
+    <div id="events-list">
+      <div style="text-align:center;color:#3a5a3a;padding:40px 0;font-size:.9rem">No events yet. Create one!</div>
+    </div>
+  </div>
+
+  <div id="panel-create" style="display:none">
+    <div class="card">
+      <h3>📍 Event Location</h3>
+      <input type="text" id="event-location" placeholder="e.g. Palakkad Fort Area"
+        style="width:100%;padding:12px 16px;background:#0f1f0f;border:1px solid #2e4d2e;border-radius:10px;color:#e0ffe0;font-size:.9rem;outline:none;margin-bottom:16px" />
+      <h3>📅 Cleanup Date</h3>
+      <input type="date" id="event-date"
+        style="width:100%;padding:12px 16px;background:#0f1f0f;border:1px solid #2e4d2e;border-radius:10px;color:#e0ffe0;font-size:.9rem;outline:none;margin-bottom:16px;margin-top:10px" />
+      <h3>📝 Description</h3>
+      <input type="text" id="event-desc" placeholder="e.g. Beach cleanup drive"
+        style="width:100%;padding:12px 16px;background:#0f1f0f;border:1px solid #2e4d2e;border-radius:10px;color:#e0ffe0;font-size:.9rem;outline:none;margin-top:10px" />
+    </div>
+    <div style="background:#1a2e1a;border:1px solid #2e4d2e;border-radius:14px;padding:14px 16px;margin-bottom:16px;font-size:.82rem;color:#7db87d;line-height:1.6">
+      🏅 As event leader you get <strong style="color:#4cff91">2× points</strong> when verified.<br/>
+      📜 Everyone gets a <strong style="color:#4cff91">digital certificate</strong> on completion.
+    </div>
+    <button class="submit-btn" onclick="createNewEvent()">📅 Create Cleanup Event</button>
+    <div id="create-result" style="display:none;margin-top:14px;text-align:center;color:#4cff91;font-size:.9rem;line-height:1.8"></div>
+  </div>
+
+  <div id="panel-complete" style="display:none">
+    <div style="background:#1a2e1a;border:1px solid #2e4d2e;border-radius:14px;padding:14px 16px;margin-bottom:16px;font-size:.82rem;color:#7db87d;line-height:1.6">
+      📸 Upload before + after photos of your completed event to get verified and earn rewards + certificate.
+    </div>
+    <div class="card">
+      <h3>🔑 Event ID</h3>
+      <input type="text" id="complete-event-id" placeholder="Paste your event ID here"
+        style="width:100%;padding:12px 16px;background:#0f1f0f;border:1px solid #2e4d2e;border-radius:10px;color:#e0ffe0;font-size:.9rem;outline:none" />
+    </div>
+    <div class="card">
+      <h3>📸 Before Photo</h3>
+      <div class="upload-box">
+        <div class="upload-icon">🗑️</div><p>Before cleanup photo</p>
+        <input type="file" accept="image/*" id="complete-before" />
+      </div>
+      <img id="complete-before-preview" class="preview-img" />
+    </div>
+    <div class="card">
+      <h3>✅ After Photo</h3>
+      <div class="upload-box">
+        <div class="upload-icon">✨</div><p>After cleanup photo</p>
+        <input type="file" accept="image/*" id="complete-after" />
+      </div>
+      <img id="complete-after-preview" class="preview-img" />
+    </div>
+    <button class="submit-btn" id="complete-submit-btn" disabled onclick="completeEvent()">🏅 Submit & Get Certificate</button>
+    <div class="loader" id="complete-loader">⏳ Verifying your cleanup...</div>
+    <div id="certificate-box" style="display:none;margin-top:20px">
+      <canvas id="cert-canvas" style="width:100%;border-radius:16px;border:2px solid #4cff91"></canvas>
+      <button onclick="downloadCertificate()"
+        style="width:100%;margin-top:12px;padding:14px;background:#4cff91;color:#0f1f0f;font-weight:700;border:none;border-radius:12px;cursor:pointer;font-size:.95rem">
+        ⬇️ Download Certificate
+      </button>
+    </div>
+  </div>
+
+  <div class="bottom-spacer"></div>
+  <nav class="bottom-nav">
+    <button class="nav-item" onclick="showScreen('dashboard')"><span class="nav-icon">🏠</span>Home</button>
+    <button class="nav-item" onclick="showScreen('upload')"><span class="nav-icon">📸</span>Upload</button>
+    <button class="nav-item" onclick="showScreen('report')"><span class="nav-icon">🚨</span>Report</button>
+    <button class="nav-item active" onclick="showScreen('community')"><span class="nav-icon">👥</span>Events</button>
+    <button class="nav-item" onclick="showScreen('leaderboard')"><span class="nav-icon">🏆</span>Ranks</button>
+  </nav>
+</div>
+
+
+<!-- ════════════════════════════════
+     SCREEN 6 — LEADERBOARD
+════════════════════════════════ -->
+<div id="screen-leaderboard" class="screen">
+  <div class="screen-header">
+    <span style="font-size:1.5rem;cursor:pointer" onclick="showScreen('dashboard')">←</span>
+    <h2>Leaderboard</h2>
+  </div>
+
+  <div class="my-points-card">
+    <p>Your Total Points</p>
+    <div class="big-points" id="lb-my-points">—</div>
+    <div class="rank-label" id="lb-my-rank">Loading...</div>
+  </div>
+
+  <div class="section-title" style="margin:0 0 10px">🏆 Top Cleaners</div>
+  <div id="leaderboard-list"></div>
+
+  <div class="section-title" style="margin:16px 0 10px">🎁 Redeem Rewards</div>
+  <div class="reward-card">
+    <div class="reward-icon">☕</div>
+    <div class="reward-info"><div class="reward-name">Free Coffee Coupon</div><div class="reward-cost">30 points</div></div>
+    <button class="redeem-btn" id="btn-30" onclick="redeem(30,this)">Redeem</button>
+  </div>
+  <div class="reward-card">
+    <div class="reward-icon">🛒</div>
+    <div class="reward-info"><div class="reward-name">₹50 off on Zepto</div><div class="reward-cost">50 points</div></div>
+    <button class="redeem-btn" id="btn-50" onclick="redeem(50,this)">Redeem</button>
+  </div>
+  <div class="reward-card">
+    <div class="reward-icon">🌱</div>
+    <div class="reward-info"><div class="reward-name">Plant a Tree in Your Name</div><div class="reward-cost">25 points</div></div>
+    <button class="redeem-btn" id="btn-25" onclick="redeem(25,this)">Redeem</button>
+  </div>
+
+  <div class="bottom-spacer"></div>
+  <nav class="bottom-nav">
+    <button class="nav-item" onclick="showScreen('dashboard')"><span class="nav-icon">🏠</span>Home</button>
+    <button class="nav-item" onclick="showScreen('upload')"><span class="nav-icon">📸</span>Upload</button>
+    <button class="nav-item" onclick="showScreen('report')"><span class="nav-icon">🚨</span>Report</button>
+    <button class="nav-item" onclick="showScreen('community')"><span class="nav-icon">👥</span>Events</button>
+    <button class="nav-item active" onclick="showScreen('leaderboard')"><span class="nav-icon">🏆</span>Ranks</button>
+  </nav>
+</div>
+
+
+<!-- ════════════════════════════════
+     SCRIPTS
+════════════════════════════════ -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+'use strict';
+
+// ── STATE ──
+let userName       = '';
+let userCity       = '';
+let myPoints       = 0;
+let cleanupCount   = 0;
+let mapInitialized = false;
+let loggedIn       = false;
+let reportLat      = 10.7867;
+let reportLng      = 76.6548;
+
+const API = 'http://127.0.0.1:5000';
+
+// ── ONBOARDING ──
+function startApp() {
+  const name = document.getElementById('input-name').value.trim();
+  const city = document.getElementById('input-city').value.trim();
+  if (!name || !city) { alert('Please enter your name and city to continue!'); return; }
+
+  userName = name;
+  userCity = city;
+  loggedIn = true;
+
+  document.getElementById('dash-name').textContent = name;
+  document.getElementById('dash-city').textContent = '📍 ' + city;
+
+  showScreen('dashboard');
+  fetchPoints();
+  initMap();
+}
+
+// ── SCREEN SWITCHING ──
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  if (name === 'dashboard')    { fetchPoints(); loadFeed(); }
+  if (name === 'leaderboard')  { fetchPoints(); renderLeaderboard(myPoints); }
+  if (name === 'community')    { loadEvents(); }
+}
+
+// ── MAP ──
+const hotspots = [
+  { lat:10.7867, lng:76.6548, title:'Palakkad Bus Stand',  type:'cleaned',   waste:'Plastic',         detail:'Cleaned 15 min ago' },
+  { lat:10.8005, lng:76.6432, title:'Town Square Park',    type:'dirty',     waste:'Mixed Waste',     detail:'Needs cleanup!' },
+  { lat:10.7720, lng:76.6700, title:'Market Road',         type:'attention', waste:'Food Waste',      detail:'Partially cleaned' },
+  { lat:11.2588, lng:75.7804, title:'Kozhikode Beach',     type:'dirty',     waste:'Plastic + Glass', detail:'High priority zone' },
+  { lat:10.5276, lng:76.2144, title:'Thrissur Round',      type:'cleaned',   waste:'E-Waste',         detail:'Cleaned today' },
+  { lat:9.9312,  lng:76.2673, title:'Kochi Marine Drive',  type:'attention', waste:'Mixed Waste',     detail:'Cleanup scheduled tomorrow' },
+];
+const colorMap = { dirty:'#ff4444', cleaned:'#4cff91', attention:'#ffaa00' };
+const emojiMap = { dirty:'🔴', cleaned:'🟢', attention:'🟡' };
+
+function initMap() {
+  if (mapInitialized) return;
+  mapInitialized = true;
+  const map = L.map('dashboard-map', { zoomControl: false }).setView([10.7867, 76.6548], 8);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution:'© OpenStreetMap' }).addTo(map);
+  hotspots.forEach(spot => {
+    L.circleMarker([spot.lat, spot.lng], {
+      radius:11, fillColor:colorMap[spot.type], fillOpacity:.9, color:'#0f1f0f', weight:2
+    }).addTo(map).bindPopup(
+      `<div class="popup-title">${emojiMap[spot.type]} ${spot.title}</div>
+       <div class="popup-detail">🗑️ ${spot.waste}<br/>${spot.detail}</div>`
+    );
+  });
+}
+
+// ── POINTS ──
+async function fetchPoints() {
+  if (!loggedIn) return;
+  try {
+    const data = await (await fetch(`${API}/points`)).json();
+    myPoints     = data.total_points;
+    cleanupCount = Math.max(cleanupCount, Math.floor(myPoints / 8));
+
+    document.getElementById('hero-points').textContent   = myPoints;
+    document.getElementById('stat-cleanups').textContent = cleanupCount;
+    document.getElementById('streak-num').textContent    = cleanupCount;
+    document.getElementById('lb-my-points').textContent  = myPoints;
+
+    const rank = myPoints === 0 ? 'Start cleaning to earn!'
+               : myPoints < 30  ? '🌱 Eco Starter'
+               : myPoints < 70  ? '♻️ Green Warrior'
+               : '🌍 Planet Hero';
+    document.getElementById('hero-rank').textContent = rank;
+  } catch { /* backend not reachable */ }
+}
+
+// ── LEADERBOARD ──
+const dummyUsers = [
+  { name:'Arjun M',  emoji:'🧑', points:85, cleanups:7 },
+  { name:'Sneha R',  emoji:'👩', points:72, cleanups:6 },
+  { name:'Rahul K',  emoji:'🧔', points:55, cleanups:5 },
+  { name:'Divya P',  emoji:'👧', points:40, cleanups:4 },
+  { name:'Kiran T',  emoji:'🧒', points:28, cleanups:3 },
+];
+
+function renderLeaderboard(myPts) {
+  const all = [
+    ...dummyUsers,
+    { name: userName || 'You', emoji:'😊', points:myPts, cleanups:cleanupCount, isYou:true }
+  ].sort((a, b) => b.points - a.points);
+
+  document.getElementById('leaderboard-list').innerHTML = all.map((u, i) => {
+    const medals = ['🥇','🥈','🥉'];
+    const cls    = ['gold','silver','bronze'][i] || 'normal';
+    const label  = medals[i] || `#${i+1}`;
+    return `
+      <div class="lb-entry${u.isYou ? ' you' : ''}">
+        <div class="lb-rank ${cls}">${label}</div>
+        <div class="lb-avatar">${u.emoji}</div>
+        <div class="lb-info">
+          <div class="lb-name">${u.name}${u.isYou ? '<span class="you-tag">YOU</span>' : ''}</div>
+          <div class="lb-sub">${u.cleanups} cleanups</div>
+        </div>
+        <div class="lb-pts">${u.points} pts</div>
+      </div>`;
+  }).join('');
+
+  const myRank = all.findIndex(u => u.isYou) + 1;
+  document.getElementById('lb-my-rank').textContent = `You are ranked #${myRank} this week`;
+  document.querySelectorAll('.redeem-btn').forEach(btn => {
+    btn.disabled = myPts < parseInt(btn.id.replace('btn-', ''));
+  });
+}
+
+function redeem(cost, btn) {
+  if (myPoints < cost) return;
+  btn.textContent = '✅ Redeemed!';
+  btn.disabled = true;
+  alert('🎉 Coupon redeemed! A code would be sent to your email in a real app.');
+}
+
+// ── UPLOAD ──
+const beforeInput = document.getElementById('before-input');
+const afterInput  = document.getElementById('after-input');
+const videoInput  = document.getElementById('video-input');
+const submitBtn   = document.getElementById('submit-btn');
+
+function previewFile(input, previewId) {
+  const el = document.getElementById(previewId);
+  el.src = URL.createObjectURL(input.files[0]);
+  el.style.display = 'block';
+}
+
+beforeInput.addEventListener('change', () => { previewFile(beforeInput, 'before-preview'); checkUploadReady(); });
+afterInput.addEventListener('change',  () => { previewFile(afterInput,  'after-preview');  checkUploadReady(); });
+videoInput.addEventListener('change',  () => {
+  const v = document.getElementById('video-preview');
+  v.src = URL.createObjectURL(videoInput.files[0]);
+  v.style.display = 'block';
+  checkUploadReady();
+});
+
+function checkUploadReady() {
+  submitBtn.disabled = !(beforeInput.files[0] && afterInput.files[0] && videoInput.files[0]);
+}
+
+submitBtn.addEventListener('click', async () => {
+  const fd = new FormData();
+  fd.append('before', beforeInput.files[0]);
+  fd.append('after',  afterInput.files[0]);
+  fd.append('video',  videoInput.files[0]);
+
+  submitBtn.disabled = true;
+  document.getElementById('loader').style.display    = 'block';
+  document.getElementById('result-box').style.display = 'none';
+
+  try {
+    const data = await (await fetch(`${API}/analyze`, { method:'POST', body:fd })).json();
+    document.getElementById('loader').style.display    = 'none';
+    document.getElementById('result-box').style.display = 'block';
+    document.getElementById('waste-type').textContent    = '🗑️ ' + data.waste_type;
+    document.getElementById('points-display').textContent = '+' + data.points + ' pts';
+    document.getElementById('impact-text').textContent   = data.impact_message;
+    if (data.points > 0) cleanupCount++;
+    myPoints = data.total_points;
+  } catch {
+    document.getElementById('loader').style.display = 'none';
+    alert('Something went wrong. Is your backend running?');
+    submitBtn.disabled = false;
+  }
+});
+
+// ── LOCATION ──
+function getLocation() {
+  const status = document.getElementById('location-status');
+  status.textContent = '📡 Detecting location...';
+  if (!navigator.geolocation) { status.textContent = '❌ Geolocation not supported.'; return; }
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      reportLat = pos.coords.latitude;
+      reportLng = pos.coords.longitude;
+      status.textContent = `✅ Detected: ${reportLat.toFixed(4)}, ${reportLng.toFixed(4)}`;
+    },
+    () => { status.textContent = '❌ Could not get location. Enter it manually.'; }
+  );
+}
+
+// ── REPORT ──
+document.getElementById('report-photo-input').addEventListener('change', function() {
+  const p = document.getElementById('report-photo-preview');
+  p.src = URL.createObjectURL(this.files[0]);
+  p.style.display = 'block';
+  document.getElementById('report-submit-btn').disabled = false;
+});
+
+async function submitReport() {
+  const photo    = document.getElementById('report-photo-input').files[0];
+  const location = document.getElementById('report-location').value || 'Unknown location';
+  if (!photo) { alert('Please upload a photo first.'); return; }
+
+  const fd = new FormData();
+  fd.append('photo',    photo);
+  fd.append('location', location);
+  fd.append('lat',      reportLat);
+  fd.append('lng',      reportLng);
+  fd.append('reporter', userName || 'Anonymous');
+
+  document.getElementById('report-submit-btn').disabled = true;
+  document.getElementById('report-loader').style.display  = 'block';
+  document.getElementById('report-result').style.display  = 'none';
+
+  try {
+    const data = await (await fetch(`${API}/report`, { method:'POST', body:fd })).json();
+    document.getElementById('report-loader').style.display  = 'none';
+    document.getElementById('report-result').style.display  = 'block';
+    const colors = { Low:'#ffdd44', Medium:'#ffaa00', High:'#ff4444' };
+    const sevEl  = document.getElementById('report-severity');
+    sevEl.style.color   = colors[data.severity] || '#ffaaaa';
+    sevEl.textContent   = '⚠️ Severity: ' + data.severity;
+    document.getElementById('report-waste').textContent   = '🗑️ Waste type: ' + data.waste_type;
+    document.getElementById('report-points').textContent  = '+' + data.points + ' pts';
+    document.getElementById('report-message').textContent = data.message;
+    myPoints = data.total_points;
+  } catch {
+    document.getElementById('report-loader').style.display = 'none';
+    alert('Something went wrong. Is your backend running?');
+    document.getElementById('report-submit-btn').disabled = false;
+  }
+}
+
+// ── COMMUNITY EVENTS ──
+function switchTab(tab) {
+  ['events','create','complete'].forEach(t => {
+    document.getElementById('panel-' + t).style.display = t === tab ? 'block' : 'none';
+    const btn = document.getElementById('tab-' + t);
+    btn.style.background  = t === tab ? '#4cff91' : 'transparent';
+    btn.style.color       = t === tab ? '#0f1f0f' : '#7db87d';
+    btn.style.borderColor = t === tab ? '#4cff91' : '#2e4d2e';
+  });
+  if (tab === 'events') loadEvents();
+}
+
+async function loadEvents() {
+  const list = document.getElementById('events-list');
+  try {
+    const events = await (await fetch(`${API}/events`)).json();
+    if (events.length === 0) {
+      list.innerHTML = '<div style="text-align:center;color:#3a5a3a;padding:40px 0;font-size:.9rem">No events yet. Create one!</div>';
+      return;
+    }
+    list.innerHTML = events.map(ev => `
+      <div style="background:#1a2e1a;border:1px solid ${ev.status==='completed'?'#4cff91':'#2e4d2e'};border-radius:14px;padding:16px;margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+          <div>
+            <div style="font-weight:700;font-size:.95rem;color:#e0ffe0">📍 ${ev.location}</div>
+            <div style="font-size:.78rem;color:#7db87d;margin-top:3px">📅 ${ev.date} · 👑 ${ev.leader}</div>
+          </div>
+          <span style="background:${ev.status==='completed'?'#4cff91':'#1a3d1a'};color:${ev.status==='completed'?'#0f1f0f':'#4cff91'};border:1px solid #4cff91;border-radius:20px;padding:3px 10px;font-size:.68rem;font-weight:700;white-space:nowrap">
+            ${ev.status==='completed'?'✅ Done':'🟢 Open'}
+          </span>
+        </div>
+        <div style="font-size:.8rem;color:#b0deb0;margin-bottom:10px">${ev.description||''}</div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div style="font-size:.75rem;color:#7db87d">👥 ${ev.members.join(', ')}</div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <span style="font-size:.7rem;color:#3a5a3a">ID: ${ev.id}</span>
+            ${ev.status!=='completed'?`<button onclick="joinEvent('${ev.id}')"
+              style="padding:6px 14px;border-radius:20px;border:1px solid #4cff91;background:transparent;color:#4cff91;font-size:.75rem;cursor:pointer;font-weight:600">Join</button>`:''}
+          </div>
+        </div>
+      </div>`).join('');
+  } catch {
+    list.innerHTML = '<div style="color:#ff4444;text-align:center;padding:20px">Could not load events. Is backend running?</div>';
+  }
+}
+
+async function createNewEvent() { 
+  const location = document.getElementById('event-location').value.trim();
+  const date     = document.getElementById('event-date').value;
+  const desc     = document.getElementById('event-desc').value.trim();
+
+  console.log("Creating event:", location, date);
+
+  if (!location || !date) {
+    alert("Please fill location and date!");
+    return;
+  }
+
+  try {
+    const res = await fetch('http://127.0.0.1:5000/events', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        location,
+        date,
+        description: desc,
+        leader: userName || "You",
+        lat: reportLat,
+        lng: reportLng
+      })
+    });
+
+    const data = await res.json();
+    console.log("Response:", data);
+
+    if (data.success) {
+      alert("✅ Event Created! ID: " + data.event.id);
+    } else {
+      alert("❌ Error: " + JSON.stringify(data));
+    }
+
+  } catch (e) {
+    console.error(e);
+    alert("❌ Failed to connect backend");
+  }
+}
+async function joinEvent(eventId) {
+  try {
+    const data = await (await fetch(`${API}/events/${eventId}/join`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ name: userName || 'You' })
+    })).json();
+    if (data.success) { alert(`✅ Joined! Members: ${data.members.join(', ')}`); loadEvents(); }
+  } catch {
+    alert('Could not join event.');
+  }
+}
+
+// ── COMPLETE EVENT ──
+document.getElementById('complete-before').addEventListener('change', function() {
+  const p = document.getElementById('complete-before-preview');
+  p.src = URL.createObjectURL(this.files[0]);
+  p.style.display = 'block';
+  checkCompleteReady();
+});
+document.getElementById('complete-after').addEventListener('change', function() {
+  const p = document.getElementById('complete-after-preview');
+  p.src = URL.createObjectURL(this.files[0]);
+  p.style.display = 'block';
+  checkCompleteReady();
+});
+function checkCompleteReady() {
+  const b = document.getElementById('complete-before').files[0];
+  const a = document.getElementById('complete-after').files[0];
+  document.getElementById('complete-submit-btn').disabled = !(b && a);
+}
+
+async function completeEvent() {
+  const eventId = document.getElementById('complete-event-id').value.trim();
+  const before  = document.getElementById('complete-before').files[0];
+  const after   = document.getElementById('complete-after').files[0];
+  if (!eventId)          { alert('Please enter your Event ID.'); return; }
+  if (!before || !after) { alert('Please upload both before and after photos.'); return; }
+
+  const fd = new FormData();
+  fd.append('before', before);
+  fd.append('after',  after);
+
+  document.getElementById('complete-submit-btn').disabled = true;
+  document.getElementById('complete-loader').style.display    = 'block';
+  document.getElementById('certificate-box').style.display    = 'none';
+
+  try {
+    const data = await (await fetch(`${API}/events/${eventId}/complete`, { method:'POST', body:fd })).json();
+    document.getElementById('complete-loader').style.display = 'none';
+
+    if (data.verified) {
+      myPoints += data.leader_points;
+      generateCertificate(data, eventId);
+      document.getElementById('certificate-box').style.display = 'block';
+      alert(`🎉 Verified!\n👑 Leader bonus: +${data.leader_points} pts\n👥 Each member: +${data.member_points} pts`);
+    } else {
+      alert('❌ Not verified. ' + (data.message || 'Try clearer photos.'));
+      document.getElementById('complete-submit-btn').disabled = false;
+    }
+  } catch {
+    document.getElementById('complete-loader').style.display = 'none';
+    alert('Error. Is your backend running?');
+    document.getElementById('complete-submit-btn').disabled = false;
+  }
+}
+
+// ── CERTIFICATE ──
+function generateCertificate(data, eventId) {
+  const canvas = document.getElementById('cert-canvas');
+  const ctx    = canvas.getContext('2d');
+  canvas.width = 800; canvas.height = 560;
+
+  ctx.fillStyle = '#0f1f0f'; ctx.fillRect(0,0,800,560);
+  ctx.strokeStyle = '#4cff91'; ctx.lineWidth = 6; ctx.strokeRect(20,20,760,520);
+  ctx.strokeStyle = '#2e4d2e'; ctx.lineWidth = 2; ctx.strokeRect(34,34,732,492);
+
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#4cff91'; ctx.font = '48px serif'; ctx.fillText('🌿',400,90);
+  ctx.font = 'bold 32px Georgia,serif'; ctx.fillText('Certificate of Achievement',400,140);
+  ctx.fillStyle = '#7db87d'; ctx.font = '16px Georgia,serif';
+  ctx.fillText('CleanCred Community Cleanup Program',400,170);
+
+  ctx.strokeStyle = '#2e4d2e'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(100,188); ctx.lineTo(700,188); ctx.stroke();
+
+  ctx.fillStyle = '#b0deb0'; ctx.font = '15px Georgia,serif';
+  ctx.fillText('This is to certify that',400,220);
+  ctx.fillStyle = '#e0ffe0'; ctx.font = 'bold 26px Georgia,serif';
+  ctx.fillText(userName || 'Community Leader',400,258);
+  ctx.fillStyle = '#b0deb0'; ctx.font = '15px Georgia,serif';
+  ctx.fillText('successfully led a community cleanup event',400,292);
+  ctx.fillText('and contributed to a cleaner environment.',400,316);
+
+  ctx.fillStyle = '#4cff91'; ctx.font = 'bold 15px Georgia,serif';
+  ctx.fillText(`👥 ${data.member_count} participants  ·  🏅 ${data.leader_points} points  ·  Event #${eventId}`,400,360);
+
+  ctx.fillStyle = '#7db87d'; ctx.font = '13px Georgia,serif';
+  ctx.fillText(`Issued on ${new Date().toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'})}`,400,395);
+
+  ctx.strokeStyle = '#2e4d2e'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(100,415); ctx.lineTo(700,415); ctx.stroke();
+
+  ctx.fillStyle = '#3a5a3a'; ctx.font = '12px Georgia,serif';
+  ctx.fillText('CleanCred · AI-Powered Civic Action · cleancred.app',400,445);
+  ctx.font = '36px serif'; ctx.fillText('🏅',400,495);
+}
+
+function downloadCertificate() {
+  const a = document.createElement('a');
+  a.download = `CleanCred_Certificate_${userName||'User'}.png`;
+  a.href = document.getElementById('cert-canvas').toDataURL('image/png');
+  a.click();
+}
+
+// ── LIVE FEED ──
+async function loadFeed() {
+  const list = document.getElementById('live-feed-list');
+  if (!list) return;
+  try {
+    const data = await (await fetch(`${API}/cleanups`)).json();
+    if (data.length === 0) {
+      list.innerHTML = '<div style="color:#3a5a3a;font-size:.82rem;text-align:center;padding:20px">No cleanups yet. Be the first!</div>';
+      return;
+    }
+    list.innerHTML = data.slice(0,5).map(c => `
+      <div class="feed-entry">
+        <div class="feed-icon">♻️</div>
+        <div class="feed-info">
+          <div class="feed-name">${userName||'You'} — ${c.waste_type}</div>
+          <div class="feed-detail">✅ Verified · ${c.created_at}</div>
+        </div>
+        <div class="feed-pts">+${c.points} pts</div>
+      </div>`).join('');
+  } catch { /* silently fail */ }
+}
+
+// ── PWA ──
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(()=>{}));
+}
+
+// ── POLL POINTS every 5s (only after login) ──
+setInterval(() => { if (loggedIn) fetchPoints(); }, 5000);
+</script>
+</body>
+</html>
