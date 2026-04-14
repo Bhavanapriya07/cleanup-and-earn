@@ -86,9 +86,9 @@ def parse_cleanup_response(text):
 
     # 🔥 FALLBACK FIX (critical)
     if result["waste_type"] == "Unknown":
-    result["verified"] = False
-    result["points"] = 0
-    result["impact_message"] = "Could not verify cleanup. Try clearer images."
+        result["verified"] = False
+        result["points"] = 0
+        result["impact_message"] = "Could not verify cleanup. Try clearer images."
 
     return result
 
