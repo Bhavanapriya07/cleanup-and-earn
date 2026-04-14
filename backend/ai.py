@@ -51,8 +51,8 @@ def analyze_cleanup(before_bytes, after_bytes):
         return {
             "waste_type": "Mixed Waste",
             "verified": True,
-            "points": 10,
-            "impact_message": "Cleanup verified successfully!"
+            "points": 5,
+            "impact_message": "Partial verification (AI fallback). Try again for full points."
         }
 
 
