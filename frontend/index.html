@@ -1042,7 +1042,7 @@ async function loadFeed() {
       <div class="feed-entry">
         <div class="feed-icon">♻️</div>
         <div class="feed-info">
-          <div class="feed-name">${userName||'You'} — ${c.waste_type}</div>
+          <div class="feed-name">${c.user || 'User'} — ${c.waste_type}</div>
           <div class="feed-detail">✅ Verified · ${c.created_at}</div>
         </div>
         <div class="feed-pts">+${c.points} pts</div>
