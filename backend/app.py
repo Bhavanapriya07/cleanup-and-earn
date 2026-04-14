@@ -1,6 +1,6 @@
 from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
-from ai import analyze_cleanup, analyze_report
+from backend.ai import analyze_cleanup, analyze_report
 from datetime import datetime
 import sqlite3
 import json
