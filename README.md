@@ -168,12 +168,12 @@ Deployed using Render.
 
 ## 🤝 Contribution
 
-Contributions are welcome!
+Contributions are welcome! <br>
 Feel free to fork this repo and submit a pull request.
 
 ## 👩‍💻 Author
 
-**Bhavana Priya**
-Instrumentation & Control Engineering Student
-Passionate about sustainability, AI, and real-world problem solving
+**Bhavana Priya** <br>
+Instrumentation & Control Engineering Student <br>
+Passionate about sustainability, AI, and real-world problem solving<br>
 
